@@ -9,4 +9,4 @@ def get_databases(quake):
     if status_code != 200:
         raise QuakeAPIException, databases.get('_meta', {}).get('error', '')
     else:
-        return databases['databases']
+      return databases['databases']
