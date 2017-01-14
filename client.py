@@ -7,7 +7,7 @@ except:
 
 import requests
 
-from settings import API_HOST, API_HOST_PORT, API_PROTOCOL, DEBUG, DEFAULT_AUTH
+from settings import API_HOST, API_HOST_PORT, API_PROTOCOL, DEBUG, DEFAULT_AUTH, USER_AGENT
 from exceptions import QuakeClientException, QuakeAuthException
 import database
 import query
@@ -57,17 +57,9 @@ class Quake(object):
 
         self.custom_headers = {'User-Agent': USER_AGENT}
 
-        try:
-            self.x_cogo_quake_user = kwargs.get('x_cogo_quake_user') if socket.gethostname() == 'quake.cogolo.net' else None
-            if self.x_cogo_quake_user:
-                self.custom_headers['X-Cogo-Quake-User'] = self.x_cogo_quake_user
-        except:
-            self.x_cogo_quake_user = None
-
 
     def stream(self, url, params=None, method=requests.get, compressed=False):
 
-        assert url.startswith('http') or url.startswith('/'), 'URL must begin with the server/protocol (http or https) or exclude the server and begin with /'
         request_url = url if url.startswith('http') else '%s%s' % (self.base_api_url, url)
 
         if params is not None:
@@ -101,7 +93,6 @@ class Quake(object):
 
     def call(self, method, url, params=None, files=None):
 
-        assert url.startswith('http') or url.startswith('/'), 'URL must begin with the server/protocol (http or https) or exclude the server and begin with /'
         request_url = url if url.startswith('http') else '%s%s' % (self.base_api_url, url)
 
         try:
@@ -126,11 +117,6 @@ class Quake(object):
 
         if response.status_code == 401:
             raise QuakeAuthException, response_dict.get('_meta', {}).get('description', '')
-
-        # deal with inconsistent locations of error message
-        if '_meta' in response_dict:
-            if not response_dict['_meta'].get('error'):
-                response_dict['_meta']['error'] = response_dict['_meta'].get('description', '')
 
         return response.status_code, response_dict
 
